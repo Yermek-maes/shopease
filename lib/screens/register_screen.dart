@@ -83,7 +83,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Please enter an email.';
-                        } else if (!RegExp(r'^[^@]+@[^@]+\.[^@]+\$').hasMatch(value)) {
+                        } else if (!RegExp(r'^[\w\.-]+@([\w-]+\.)+[a-zA-Z]{2,}$').hasMatch(value)) {
                           return 'Please enter a valid email.';
                         }
                         return null;
@@ -115,7 +115,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               _isLoading
                   ? Center(child: CircularProgressIndicator())
                   : ElevatedButton(
-                      onPressed: () => _register(context),
+                      onPressed: _isLoading ? null : () => _register(context),
                       style: ElevatedButton.styleFrom(
                         padding: EdgeInsets.symmetric(vertical: 15),
                         shape: RoundedRectangleBorder(
@@ -134,3 +134,4 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 }
+

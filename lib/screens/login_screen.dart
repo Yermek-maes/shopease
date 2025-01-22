@@ -8,38 +8,36 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _emailController = TextEditingController(); // Контроллер для поля ввода email.
-  final _passwordController = TextEditingController(); // Контроллер для поля ввода пароля.
-  final _formKey = GlobalKey<FormState>(); // Ключ формы для валидации.
-  bool _isLoading = false; // Флаг состояния загрузки.
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  bool _isLoading = false;
 
-  // Метод для выполнения авторизации.
   void _login(BuildContext context) async {
-    if (_formKey.currentState!.validate()) { // Проверка валидности формы.
+    if (_formKey.currentState!.validate()) {
       setState(() {
-        _isLoading = true; // Установка состояния загрузки.
+        _isLoading = true;
       });
       try {
-        // Попытка выполнить вход через провайдер авторизации.
-        final success = await Provider.of<AuthProvider>(context, listen: false)
+        bool success = await Provider.of<AuthProvider>(context, listen: false)
             .login(
           _emailController.text.trim(),
           _passwordController.text.trim(),
         );
         if (success) {
-          Navigator.pushReplacementNamed(context, '/'); // Успешный вход, переход на главный экран.
+          Navigator.pushReplacementNamed(context, '/');
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Invalid email or password')), // Ошибка входа.
+            SnackBar(content: Text('Invalid email or password')),
           );
         }
       } catch (error) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('An error occurred: $error')), // Ошибка во время запроса.
+          SnackBar(content: Text('An error occurred: $error')),
         );
       } finally {
         setState(() {
-          _isLoading = false; // Сброс состояния загрузки.
+          _isLoading = false;
         });
       }
     }
@@ -49,77 +47,70 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Login'), // Заголовок экрана входа.
-        centerTitle: true,
+        title: Text('Login'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: SingleChildScrollView(
-          child: Form(
-            key: _formKey, // Привязка формы к ключу.
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  'Welcome Back!', // Приветственное сообщение.
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blue,
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              TextFormField(
+                controller: _emailController,
+                decoration: InputDecoration(
+                  labelText: 'Email',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  textAlign: TextAlign.center,
                 ),
-                SizedBox(height: 20),
-                TextFormField(
-                  controller: _emailController, // Поле ввода email.
-                  decoration: InputDecoration(
-                    labelText: 'Email',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+                keyboardType: TextInputType.emailAddress,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter your email';
+                  }
+                  final emailRegex = RegExp(
+                      r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
+                  if (!emailRegex.hasMatch(value)) {
+                    return 'Please enter a valid email';
+                  }
+                  return null;
+                },
+              ),
+              SizedBox(height: 16),
+              TextFormField(
+                controller: _passwordController,
+                decoration: InputDecoration(
+                  labelText: 'Password',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                obscureText: true,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter your password';
+                  }
+                  if (value.length < 6) {
+                    return 'Password must be at least 6 characters long';
+                  }
+                  return null;
+                },
+              ),
+              SizedBox(height: 16),
+              _isLoading
+                  ? CircularProgressIndicator()
+                  : ElevatedButton(
+                      onPressed: () => _login(context),
+                      child: Text('Login'),
                     ),
-                  ),
-                  keyboardType: TextInputType.emailAddress, // Тип клавиатуры для email.
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your email.'; // Проверка на пустое значение.
-                    } else if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+\$').hasMatch(value)) {
-                      return 'Enter a valid email.'; // Проверка формата email.
-                    }
-                    return null;
-                  },
-                ),
-                SizedBox(height: 16),
-                TextFormField(
-                  controller: _passwordController, // Поле ввода пароля.
-                  decoration: InputDecoration(
-                    labelText: 'Password',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  obscureText: true, // Скрытие текста для пароля.
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your password.'; // Проверка на пустое значение.
-                    }
-                    return null;
-                  },
-                ),
-                SizedBox(height: 20),
-                _isLoading
-                    ? Center(child: CircularProgressIndicator()) // Индикатор загрузки.
-                    : ElevatedButton(
-                        onPressed: () => _login(context),
-                        child: Text('Login'), // Кнопка входа.
-                      ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.pushNamed(context, '/register'); // Переход на экран регистрации.
-                  },
-                  child: Text('Don’t have an account? Register here'),
-                ),
-              ],
-            ),
+              TextButton(
+                onPressed: () {
+                  Navigator.pushNamed(context, '/register');
+                },
+                child: Text('Don\'t have an account? Register here'),
+              ),
+            ],
           ),
         ),
       ),
